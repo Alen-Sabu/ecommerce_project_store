@@ -32,13 +32,20 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
+    'crispy_forms',
+    'paypal.standard.ipn',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts'
+    'phonenumber_field',
+    'accounts',
+    'custom_admin',
+    'cart',
+    'wkhtmltopdf',
 ]
 
 MIDDLEWARE = [
@@ -77,8 +84,12 @@ WSGI_APPLICATION = 'e_commerce.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'time_zone_01',
+        'USER': 'postgres',
+        'PASSWORD': '1234',
+        'PORT': '5432',
+        'HOST':'localhost'
     }
 }
 
@@ -128,3 +139,21 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+LOGIN_URL = '/user_login/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR/'media'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'ecommerceverify2023@gmail.com'
+EMAIL_HOST_PASSWORD = 'ahuzsldmeqsizffp'
+
+
+PAYPAL_RECEIVER_EMAIL = 'sb-ricrn25683899@business.example.com'
+PAYPAL_TEST = True
