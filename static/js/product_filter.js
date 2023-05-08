@@ -51,8 +51,13 @@ $(document).ready(function(){
             $('#suggestions').empty();
             data.suggestions.forEach(function (suggestion) {
                 var li = $('<li>').addClass('suggestion-item').text(suggestion);
+                li.click(function() {
+                    $('#search').val(suggestion);
+                    $('#suggestions').empty();
+                });
                 $('#suggestions').append(li);
             });
         });
     });
+
 });
