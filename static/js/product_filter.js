@@ -45,6 +45,7 @@ $(document).ready(function(){
         console.log(query)
         if (query.length < 1) {
             $('#suggestions').empty();
+            console.log("HHH")
             return;
         }
         $.getJSON('/shop/search/suggestions/', {q: query}, function (data) {
