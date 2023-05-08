@@ -80,6 +80,7 @@
           #lens, .slideshow-items, .slideshow-thumbnails, #result { border: solid var(--light-grey-2) 1px; }
           
     </style>
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 </head>
 
 <body class="body">
@@ -123,12 +124,7 @@
                                             <li><a href="product_details.html"> Product Details</a></li>
                                         </ul>
                                     </li>
-                                    <li><a href="blog.html">Blog</a>
-                                        <ul class="submenu">
-                                            <li><a href="blog.html">Blog</a></li>
-                                            <li><a href="blog-details.html">Blog Details</a></li>
-                                        </ul>
-                                    </li>
+                                   
                                     <li><a href="#">Pages</a>
                                         <ul class="submenu">
                                             <li><a href="{% url 'user_login' %}">Login</a></li>
@@ -139,14 +135,31 @@
                                         </ul>
                                     </li>
                                     <li><a href="/contact">Contact</a></li>
-                                    <li>
+                                    <li class="responsive-right-navbar">
+                                        
+                                            <a>User</a>
+                                            <ul style="display:flex;">
+                                                <li>
+                                                    <div >
+                                                    {% include 'cart/menu_cart.html' %}
+                                                    </div>
+                                                </li>
+                                                {% if user.is_authenticated  %}
+                                                {% if not user.is_superuser %}
+                                                <li> <a href="{% url 'user_edit' %}"><span class="fa fa-user"></span></a></li>
+                                            </ul> 
+                                            <li class="responsive-right-navbar-username"> <a href="login.html"><span class="">{{user.username}}</span></a></li>
+                                           
+                                            <li class="responsive-right-navbar-username"> <a href="{% url 'user_logout' %}"><span class="btn btn-secondary">Logout</span></a></li>
+                                            {% endif %}
+                                            {% endif %}
                                         
                                     </li>
                                 </ul>
                             </nav>
                         </div>
                         <!-- Header Right -->
-                        <div class="header-right">
+                        <div class="header-right responsive-right">
                             <ul style="align-items:center">
                                 
                                
