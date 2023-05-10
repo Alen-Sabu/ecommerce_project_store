@@ -109,7 +109,7 @@
                     <div class="menu-wrapper">
                         <!-- Logo -->
                         <div class="logo">
-                            <a href="/home"><img src="{% static 'assets/img/logo/logo.png' %}" alt=""></a>
+                            <a href="/"><img src="{% static 'assets/img/logo/logo.png' %}" alt=""></a>
                         </div>
                         <!-- Main-menu -->
                         <div class="main-menu d-none d-lg-block">
@@ -118,16 +118,17 @@
                                     <li><a href="/">Home</a></li>
                                     <li><a href="/shop">shop</a></li>
                                     <li><a href="/about">about</a></li>
-                                    <li class="hot"><a href="#">Latest</a>
+                                    <li class="hot"><a href="/shop">Latest</a>
                                         <ul class="submenu">
                                             <li><a href="/shop"> Product list</a></li>
-                                            <li><a href="product_details.html"> Product Details</a></li>
+                                            
                                         </ul>
                                     </li>
                                    
                                     <li><a href="#">Pages</a>
                                         <ul class="submenu">
                                             <li><a href="{% url 'user_login' %}">Login</a></li>
+                                            <li><a href="{% url 'user_signup' %}">SignUp</a></li>
                                             <li><a href="{% url 'cart' %}">Cart</a></li>
                                             <li><a href="{% url 'wishlist' %}">WishList</a></li>
                                             <li><a href="{% url 'order-summary' %}">Order Summary</a></li>
@@ -141,16 +142,23 @@
                                             <ul style="display:flex;">
                                                 <li>
                                                     <div >
-                                                    {% include 'cart/menu_cart.html' %}
+                                                        <div class="">
+                                                            <a class="refresh-num_of_items" href="{% url 'cart' %}">
+                                                            <span class="fa fa-shopping-cart ">
+                                                                
+                                                            </span>
+                                                            <span class='badge badge-warning cart-lg-logo' id='lblCartCounts'> {{num_of_items}} </span>
+                                                        </a>
+                                                        </div>
                                                     </div>
                                                 </li>
                                                 {% if user.is_authenticated  %}
                                                 {% if not user.is_superuser %}
                                                 <li> <a href="{% url 'user_edit' %}"><span class="fa fa-user"></span></a></li>
                                             </ul> 
-                                            <li class="responsive-right-navbar-username"> <a href="login.html"><span class="">{{user.username}}</span></a></li>
+                                            <li class="responsive-right-navbar-username"> <a href=""><span class="">{{user.username}}</span></a></li>
                                            
-                                            <li class="responsive-right-navbar-username"> <a href="{% url 'user_logout' %}"><span class="btn btn-secondary">Logout</span></a></li>
+                                            <li class="responsive-right-navbar-username"> <a href="{% url 'user_logout' %}"><span style="padding:20px 19px;" class="btn btn-secondary">Logout</span></a></li>
                                             {% endif %}
                                             {% endif %}
                                         
@@ -172,7 +180,7 @@
                                 {% if not user.is_superuser %}
                                 <li> <a href="login.html"><span class="">{{user.username}}</span></a></li>
                                 <li> <a href="{% url 'user_edit' %}"><span class="fa fa-user"></span></a></li>
-                                <li> <a href="{% url 'user_logout' %}"><span class="btn btn-secondary">Logout</span></a></li>
+                                <li> <a href="{% url 'user_logout' %}"><span style="padding:20px 19px;" class="btn btn-secondary">Logout</span></a></li>
                                 {% endif %}
                                 {% endif %}
                             </ul>
@@ -228,10 +236,10 @@
                             <div class="footer-tittle">
                                 <h4>Quick Links</h4>
                                 <ul>
-                                    <li><a href="#">About</a></li>
+                                    <li><a href="/about">About</a></li>
                                     <li><a href="#"> Offers & Discounts</a></li>
                                     <li><a href="#"> Get Coupon</a></li>
-                                    <li><a href="#">  Contact Us</a></li>
+                                    <li><a href="/contact">  Contact Us</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -241,10 +249,10 @@
                             <div class="footer-tittle">
                                 <h4>New Products</h4>
                                 <ul>
-                                    <li><a href="#">Woman Cloth</a></li>
-                                    <li><a href="#">Fashion Accessories</a></li>
-                                    <li><a href="#"> Man Accessories</a></li>
-                                    <li><a href="#"> Rubber made Toys</a></li>
+                                    <li><a href="/shop">Woman Accessories</a></li>
+                                    <li><a href="/shop">Fashion Accessories</a></li>
+                                    <li><a href="/shop"> Man Accessories</a></li>
+                                    <li><a href="/shop">Kids Accessories</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -310,8 +318,8 @@
     <!-- JS here -->
    
 
-    <script src="{% static 'js/main.js' %}"></script>
-
+    
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="{% static './assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
     <!-- Jquery, Popper, Bootstrap -->
     <script src="{% static './assets/js/vendor/jquery-1.12.4.min.js' %}"></script>
@@ -345,6 +353,8 @@
     <script src="{% static './assets/js/plugins.js' %}"></script>
     <script src="{% static './assets/js/main.js' %}"></script>
     
+
+    <script src="{% static 'js/main.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/custom.js' %}"></script>
     <script src="{% static 'js/product_filter.js' %}"></script>
     
@@ -352,6 +362,7 @@
     {% block scripts %}
 
     {% endblock scripts %}
+    
     
     <script src="{% static 'js/checkout.js' %}"></script>
     

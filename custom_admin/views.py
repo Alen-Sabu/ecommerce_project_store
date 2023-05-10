@@ -254,7 +254,7 @@ def delete_category(request, id):
 
 # -----------------ADMIN PRODUCT SECTION -----------------------
 
-ImageFormSet = ProductImageFormSet = inlineformset_factory(Product, Picture, form=ProductImageForm, extra=4)
+ImageFormSet = ProductImageFormSet = inlineformset_factory(Product, Picture, form=ProductImageForm, extra=5)
 @never_cache
 @login_required(login_url='admin_login')
 def add_product(request):

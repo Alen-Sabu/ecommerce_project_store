@@ -11,7 +11,7 @@ $(document).ready(function(){
         _filterObj.minPrice = _minPrice
         _filterObj.maxPrice = _maxPrice
 
-        
+        console.log(_minPrice, _maxPrice)
 
         $(".filter-checkbox").each(function(index, ele){
             var _filterVal = $(this).val()

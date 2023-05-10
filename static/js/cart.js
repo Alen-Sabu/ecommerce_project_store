@@ -29,6 +29,7 @@ $(document).ready(function() {
             $(this).closest(".product_data").find('#item-total').text("$"+total);
             
             
+            
             console.log(totalQuantity)
         }else if (value >= totalQuantity){
             alertify.error("Out of Stock")
@@ -64,29 +65,7 @@ $(document).ready(function() {
 
     })
 
-    // $(".addToCartBtn").click(function(e){
-    //     e.preventDefault();
-
-    //     var product_id = $(this).closest('product_data').find('.prod_id').val();
-    //     var product_qty = $(this).closest('product_data').find('.qty-input').val();
-    //     var token = $('input[name=csrfmiddlewaretoken]').val()
-
-    //     console.log(product_id);
-    //     $.ajax({
-    //         method: "POST",
-    //         url: "/add-to-cart",
-    //         data: {
-    //             product_id: product_id,
-    //             product_qty: product_qty,
-    //             csrfmiddlewaretoken: token
-    //         },
-    //         dataType: "dataType",
-    //         success: function(response){
-    //             console.log(response)
-    //         }
-    //     })
-
-    // })
+    
 
     $(".changeQuantity").click(function(e){
         e.preventDefault();
@@ -119,6 +98,7 @@ $(document).ready(function() {
                 $('#lblCartCount').html(response.num_of_items)
                 }
                 console.log(response)
+                $('.order-cart-total').load(location.href + " .order-cart-total")
                 $('.guest-user-product-quantity').val(response.product_quantity)
                 console.log(totalQuantity)
                 
@@ -136,27 +116,51 @@ $(document).ready(function() {
 
         console.log(token)
         console.log(product_id);
-        if(user == "AnonymousUser"){
-            delete cart[product_id]
-            document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
-            $('.cart-data').load(location.href + " .cart-data" )
-            console.log(cart)
-            return
-        }
-        $.ajax({
-            method: "POST",
-            url: "/shop/cart/delete_cart",
-            data: {
-                "product_id": product_id,
-                
-                csrfmiddlewaretoken: token
-            },
-           
-            success: function(response){
-                console.log(response)
-                $('.cart-data').load(location.href + " .cart-data" )
+        swal({
+            title: "Are you sure?",
+            text: "Once deleted, you will not be able to recover this ",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+          })
+          .then((willDelete) => {
+            if (willDelete) {
+                if(user == "AnonymousUser"){
+                    delete cart[product_id]
+                    document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
+                    $('.cart-data').load(location.href + " .cart-data" )
+                    swal("Poof! Your product has been removed from the cart!", {
+                        icon: "success",
+                      });
+                    console.log(cart)
+                    return
+                }
+                $.ajax({
+                    method: "POST",
+                    url: "/shop/cart/delete_cart",
+                    data: {
+                        "product_id": product_id,
+                        
+                        csrfmiddlewaretoken: token
+                    },
+                   
+                    success: function(response){
+                        console.log(response)
+                        $('.cart-lg-logo').html(response.num_of_items)
+                        alertify.success(response.status)
+                        $('.cart-data').load(location.href + " .cart-data" )
+                        swal("Poof! Your product has been removed from the cart!", {
+                            icon: "success",
+                          });
+                    }
+                })
+              
+            } else {
+              
+              return false
             }
-        })
+          });
+        
 
     })
 
@@ -250,73 +254,3 @@ $(document).ready(function() {
 
    
 
-
-
-// var updateBtns = document.getElementsByClassName('update-cart')
-
-
-// for(var i = 0; i < updateBtns.length; i++){
-//     updateBtns[i].addEventListener('click',function(){
-//         var productId = this.dataset.product
-//         var action = this.dataset.action
-        
-        
-//         console.log('productId',productId, 'action',action)
-
-//         console.log(user)
-
-//         if(user=='AnonymousUser'){
-//             console.log("Not logged In")
-
-//         }else{
-//             updateUserOrder(productId, action)
-//         }
-//     })
-// }
-
-// function updateUserOrder(productId, action){
-//     console.log("user is logged in ")
-
-//     var url = "cart/update_item/"
-
-//     fetch(url, {
-//         method : "POST",
-//         headers:{
-//             'Content-Type':'application/json',
-//             'X-CSRFToken':csrftoken,
-//         },
-//         body: JSON.stringify({'productId':productId, 'action':action})
-        
-//     })
-//     .then((response) =>{
-//         return response.json()
-//     })
-
-//     .then((data) =>{
-//         document.getElementById("lblCartCount").innerHTML = data
-//         console.log(data)
-        
-        
-//     })
-// }
-
-  
-// function refreshDiv(){
-//     $('#cart-div-change').load(location.href + "#cart-div-change")
-// }
-
-//   function reloadDiv() {
-//     $.ajax({
-//         url: "cart/my_view/",
-//         type: "GET",
-//         dataType: "json",
-//         success: function(data) {
-            
-//             // update the content of the div with the new data
-//             $("#cart-div-change").html(data.html);
-//         },
-//         error: function(xhr, status, error) {
-//             console.log("An error occurred while loading the div.");
-//         }
-//     });
-// }

@@ -105,6 +105,37 @@ def home(request):
     except:
         banner = None
     products = Product.objects.all()
+    for product in products:
+        category = Category.objects.get(id = product.category.id)
+        original_price = product.original_price
+        try:
+            offer = product.offer
+            print(offer.discount_amount)
+            old_price = original_price * int(offer.discount_amount)/100
+            product.selling_price = product.original_price - old_price
+            product.offer_status = True
+            product.save()
+            print(product.offer)
+        except:
+            pass
+
+        try:
+            offer = category.offer
+            print(offer.discount_amount)
+            new_price = original_price * int(offer.discount_amount)/100
+            if(old_price < new_price):
+                product.selling_price = product.original_price - new_price
+                product.offer_status = True
+                product.save()
+            print(category.offer)
+        except:
+            pass
+
+        if not product.offer and not category.offer:
+            product.selling_price = product.original_price
+            product.offer_status = False
+            product.save()
+
     return render(request, 'user/index.html',{'products':products, 'num_of_items': num_of_item, 'banner':banner})
 
 
@@ -124,6 +155,7 @@ def user_signup(request):
 
 # ------------- USER SECTION ENDING ------------
 
+# -------------- PRODUCT DETAILS ---------------
 
 def product(request, slug):
     product = get_object_or_404(Product, slug = slug)
@@ -131,6 +163,18 @@ def product(request, slug):
     related_products = Product.objects.filter(category = category)[:9]
     old_price = 0
     original_price = product.original_price
+    if request.user.is_authenticated:
+        if not request.user.is_superuser:
+            customer = request.user
+            order, created = Order.objects.get_or_create(customer = customer, complete = False)
+            items = order.orderitem_set.all()
+            num_of_item = order.get_cart_items
+    else:
+
+        items = []
+        order = {'get_cart_total':0, 'get_cart_items':0}
+        num_of_item = order['get_cart_items']
+
     try:
         offer = product.offer
         print(offer.discount_amount)
@@ -154,9 +198,70 @@ def product(request, slug):
     except:
         pass
     
+    if not product.offer and not category.offer:
+            product.selling_price = product.original_price
+            product.offer_status = False
+            product.save()
+    
     images = Picture.objects.all().filter(product= product.id)
-    return render(request, 'user/product_details_1.html', {'product':product,'images':images, 'related_products': related_products})
+    return render(request, 'user/product_details_1.html', {'product':product,'images':images, 'related_products': related_products, 'num_of_items': num_of_item})
 
+def addtocart(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+
+            product_id = int(request.POST.get('product_id'))
+            prod_qty = int(request.POST.get('product_qty'))
+            print(prod_qty)
+            product_check = Product.objects.get(id=product_id)
+            
+            if(product_check.quantity):
+                prod_qty = int(request.POST.get('product_qty'))
+                if product_check.quantity >= prod_qty:
+                    order,created = Order.objects.get_or_create(customer = request.user, complete = False)
+               
+                    orderItem, created = OrderItem.objects.get_or_create(order = order, product = product_check)
+                    num_of_item = order.get_cart_items
+                    
+                    orderItem.quantity += prod_qty
+                    if(orderItem.quantity > product_check.quantity):
+                        orderItem.quantity = product_check.quantity
+                        product_check.save()
+                        orderItem.save()
+                        order.save()
+                        return JsonResponse({"failure":"Product already exists in the cart ! Cannot add product",'num_of_items':num_of_item})
+                    product_check.save()
+                    orderItem.save()
+                    order.save()
+                    return JsonResponse({"status":"Product added successfully",'num_of_items':num_of_item})
+                
+                elif(product_check.quantity == 0):
+                    product_check.is_available = False
+                    product_check.save()
+                    
+                    return JsonResponse({"failure":"Out of stock"})
+                elif(prod_qty > product_check.quantity):
+                    return JsonResponse({'failure':"Out of stock"})
+                elif(product_check.quantity == 1):
+                    product_check.quantity -=1
+                    product_check.save()
+                    order,created = Order.objects.get_or_create(customer = request.user, complete = False)
+               
+                    orderItem, created = OrderItem.objects.get_or_create(order = order, product = product_check)
+                    orderItem.quantity+=1
+                    orderItem.save()
+                    order.save()
+                    return JsonResponse({"status":"Last One successfully added to cart!"})
+                else:
+                    return JsonResponse({"status":"Only"+str(product_check.quantity) + " quantity available"})
+                
+            else:
+                return JsonResponse({"status":"No such product found"})
+        else:
+            return JsonResponse({"status":"Login to Continue"})
+    return redirect('/')
+
+# --------------PRODUCT DETAILS ENDING --------------
 
 
 
@@ -261,8 +366,7 @@ def password_reset_request(request):
 # ---------- FORGOT PASSWORD SECTION ENDING ------------------                           
                               
 
-def base(request):
-    return render(request, 'user/base.html')
+
 
 
 def about(request):
@@ -271,58 +375,7 @@ def about(request):
 def contact (request):
     return render(request, 'user/contact.html')
 
-def addtocart(request):
-    if request.method == "POST":
-        if request.user.is_authenticated:
 
-            product_id = int(request.POST.get('product_id'))
-            prod_qty = int(request.POST.get('product_qty'))
-            print(prod_qty)
-            product_check = Product.objects.get(id=product_id)
-            
-            if(product_check.quantity):
-                prod_qty = int(request.POST.get('product_qty'))
-                if product_check.quantity >= prod_qty:
-                    order,created = Order.objects.get_or_create(customer = request.user, complete = False)
-               
-                    orderItem, created = OrderItem.objects.get_or_create(order = order, product = product_check)
-                    
-                    
-                    orderItem.quantity += prod_qty
-                    if(orderItem.quantity > product_check.quantity):
-                        orderItem.quantity = product_check.quantity
-                        product_check.save()
-                        orderItem.save()
-                        order.save()
-                        return JsonResponse({"failure":"Product already exists in the cart ! Cannot add product"})
-                    product_check.save()
-                    orderItem.save()
-                    order.save()
-                    return JsonResponse({"status":"Product added successfully"})
-                elif(prod_qty > product_check.quantity):
-                    return JsonResponse({'failure':"Out of stock"})
-                elif(product_check.quantity == 0):
-                    product_check.is_available = False
-                    product_check.save()
-                    return JsonResponse({"failure":"Out of stock"})
-                elif(product_check.quantity == 1):
-                    product_check.quantity -=1
-                    product_check.save()
-                    order,created = Order.objects.get_or_create(customer = request.user, complete = False)
-               
-                    orderItem, created = OrderItem.objects.get_or_create(order = order, product = product_check)
-                    orderItem.quantity+=1
-                    orderItem.save()
-                    order.save()
-                    return JsonResponse({"status":"Last One successfully added to cart!"})
-                else:
-                    return JsonResponse({"status":"Only"+str(product_check.quantity) + " quantity available"})
-                
-            else:
-                return JsonResponse({"status":"No such product found"})
-        else:
-            return JsonResponse({"status":"Login to Continue"})
-    return redirect('/')
 
 
 

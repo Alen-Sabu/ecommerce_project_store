@@ -22,8 +22,9 @@
              
               
                 
-               
+               {% if orders.status == "Completed" %}
                 <th scope="col">Return</th>
+                {% endif %}
             
                 
               </tr>
@@ -45,9 +46,9 @@
                 <td  style="vertical-align:middle;"><h3>Return is successful</h3></td>
                  {% else %}
                 <td style="vertical-align:middle;"> <a class="btn btn-dark" href="{% url 'invoice' orders.id order.product.id %}">Invoice</a></td>
-                 
+                 {% if order.status == "Delivered" %}
                 <td style="vertical-align:middle;"> <a class="btn_3" href="{% url 'return' orders.id order.product.id %}">Return</a></td>
-                
+                {% endif %}
                   {% endif %}
               </tr>
               {% endfor %}

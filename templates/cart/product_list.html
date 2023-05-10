@@ -21,13 +21,22 @@
         <div class="popular-caption">
             <h3><a href="product_details.html">{{product.name}}</a></h3>
             <div class="d-flex justify-content-center align-items-center">
-                <span>{{product.selling_price}}</span>
+                <span>${{product.selling_price}}</span>
                 {% if product.offer_status %}
                 <strike style="color:red;" class="product_discount"> <span class="ml-3" style='color:black'>${{product.original_price}}<span>
                 </strike>
                 {% endif %}
             </div>
-                {% if product.offer %} <span class="text-success ml-3"> {{product.offer.discount_amount |floatformat:0}} % off</span> {% elif product.category.offer %} <span class="text-success ml-3">{{product.category.offer.discount_amount|floatformat:0}} % off</span> {% endif %}
+                {% if product.offer %} 
+                {% if product.category.offer %} 
+                {% if product.category.offer.discount_amount > product.offer.discount_amount %}
+                <span class="text-success ml-3">{{product.category.offer.discount_amount|floatformat:0}} % off</span> 
+                {% else %}
+                <span class="text-success ml-3"> {{product.offer.discount_amount |floatformat:0}} % off</span>
+                {% endif %} 
+        {% else %}<span class="text-success ml-3"> {{product.offer.discount_amount |floatformat:0}} % off</span>{% endif %}
+
+                {% elif product.category.offer %} <span class="text-success ml-3">{{product.category.offer.discount_amount|floatformat:0}} % off</span> {% endif %}
         </div>
     </div>
 </div>

@@ -154,7 +154,7 @@
         <div class="single_product_text pl-4 mt-3" style="margin:0">
         <h3>{{product.name}}</h3>
         <h5>{{product.vendor}}</h5>
-        <span class="badge badge-success"><i class="fa fa-star"></i> 4.5 Star</span>
+        
         <p>
             {{product.description}}
         </p>
@@ -170,7 +170,16 @@
                  <p> Price : </p>
                  {% if product.offer_status %}
                  <h4 class="ml-5">${{product.selling_price}} </h4> <strike style="color:red;" class="product_discount"> <span class="ml-3" style='color:black'>${{product.original_price}}<span>
-                     </strike>{% if product.offer %} <span class="text-success ml-3"> {{product.offer.discount_amount |floatformat:0}} % off</span> {% else %} <span class="text-success ml-3">{{product.category.offer.discount_amount|floatformat:0}} % off</span> {% endif %}
+                    
+                     </strike>{% if product.offer  %}
+                                        {% if product.category.offer %} 
+                                                {% if product.category.offer.discount_amount > product.offer.discount_amount %}
+                                                <span class="text-success ml-3">{{product.category.offer.discount_amount|floatformat:0}} % off</span> 
+                                                {% else %}
+                                                <span class="text-success ml-3"> {{product.offer.discount_amount |floatformat:0}} % off</span>
+                                                {% endif %} 
+                                        {% else %}<span class="text-success ml-3"> {{product.offer.discount_amount |floatformat:0}} % off</span>{% endif %}
+                            {% else %} <span class="text-success ml-3">{{product.category.offer.discount_amount|floatformat:0}} % off</span> {% endif %}
                  {% else %}
                 <h4 class="ml-5">${{product.original_price}}</h4>
                 {% endif %}

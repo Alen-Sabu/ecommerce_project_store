@@ -26,6 +26,7 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = CustomUser
         fields = ('first_name', 'last_name', 'username', 'email', 'phone_number')    
+        
 
 class VerifyForm(forms.Form):
     code = forms.CharField(max_length=8, required=True, widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Enter Code'}))

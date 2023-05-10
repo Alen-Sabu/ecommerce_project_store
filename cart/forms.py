@@ -25,9 +25,6 @@ class BillingAddressForm(forms.ModelForm):
 
 class ShippingAddressForm(forms.ModelForm):
    
-    
-    
-    
     phone_number = PhoneNumberField(region="IN",max_length=15, widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Phone-Number'}))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class':'form-control','placeholder':'Email'}))
 
@@ -52,6 +49,7 @@ class CouponForm(forms.Form):
         model = Coupon
         fields = ['code']
 
+
 class ReturnForm(forms.Form):
     
     reason = forms.CharField(max_length=200, widget=forms.Textarea(attrs={"class":"form-control"}))
@@ -59,14 +57,4 @@ class ReturnForm(forms.Form):
     class Meta:
         model = Return
         fields = ['reason']
-    # def __init__(self, user_id, order_id, *args, **kwargs):
-    #     super(ReturnForm, self).__init__(*args, **kwargs)
-    #     self.fields['item'].choices = self.get_ordered_items(user_id, order_id)
-
-    # def get_ordered_items(self, user_id, order_id):
-    #     items = []
-    #     order = Orders.objects.get(customer =user_id, id=order_id)
-    #     order_items = OrderedItems.objects.filter(order = order)
-    #     for item in order_items:
-    #         items.append((item.id, str(item)))
-    #     return items
+    

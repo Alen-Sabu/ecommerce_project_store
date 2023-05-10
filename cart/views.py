@@ -62,7 +62,7 @@ def cart(request):
             if(cart[i]["quantity"] > product.quantity):
                 cart[i]["quantity"] = product.quantity
                 msg = "Only this items left"
-                
+
             item = {
                 'product':{
                     'id': product.id,
@@ -95,16 +95,20 @@ def add_to_cart(request):
         order, created = Order.objects.get_or_create(customer = request.user, complete = False)
         orderItem, created = OrderItem.objects.get_or_create(order = order, product = product)
         if(product.quantity > orderItem.quantity):
+           
             product.is_available = True
             orderItem.quantity += 1
             orderItem.save()
             product.save()
             print(product.quantity)
             num_of_item = order.get_cart_items
-            return JsonResponse({'num_of_items':num_of_item})
+            return JsonResponse({'num_of_items':num_of_item,'msg':"Product added successfully"})
         else:
+            if(created == True):
+                orderItem.delete()
             product.is_available = True
             product.save()
+            
             return JsonResponse({'status':'Out Of Stock'})
 
 
@@ -152,9 +156,11 @@ def deletecart(request):
         prod_id = int(request.POST.get('product_id'))
         order,created = Order.objects.get_or_create(customer = request.user, complete = False)
         orderItem, created = OrderItem.objects.get_or_create(order = order, product = prod_id)
+        
         if (created == False):
             orderItem.delete()
-            return JsonResponse({"status":"Deleted successfully"})
+            num_of_item = order.get_cart_items
+            return JsonResponse({"status":"Deleted successfully",'num_of_items':num_of_item})
     return redirect('/')
 
 # ------------- CART SECTION ENDING ----------------
@@ -164,8 +170,6 @@ def deletecart(request):
 
 # ------------- SHOP SECTION ---------------------
 
-def newshop(request):
-    return render(request, 'user/newshop.html')
 
 def shop(request):
     if request.user.is_authenticated:
@@ -190,12 +194,13 @@ def shop(request):
     category = Category.objects.all()
     products = Product.objects.all().order_by('id')
     newest = Product.objects.filter(trending = True)
-    minMaxPrice = Product.objects.aggregate(Min('selling_price'), Max('selling_price'))
+    minMaxPrice = Product.objects.aggregate(Min('selling_price'), Max('original_price'))
     
     paginator = Paginator(products, 3) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     totalpage = page_obj.paginator.num_pages
+    print(minMaxPrice)
 
     context = {'products':page_obj, 'num_of_items': num_of_item, 'newest': newest, 'cats':category, 'brands': brand, 'minMaxPrice':minMaxPrice,
         'page_number': page_number,
@@ -207,7 +212,7 @@ def shop(request):
 def filter_data(request):
     categories = request.GET.getlist('category[]')
     brands = request.GET.getlist('brand[]')
-    print(categories)
+    
     minPrice = request.GET['minPrice']
     maxPrice = request.GET['maxPrice']
     print(maxPrice)
@@ -227,6 +232,25 @@ def filter_data(request):
 
     
     return JsonResponse({'data':t})
+
+def search(request):
+    q = request.GET['q']
+    data = Product.objects.filter(name__icontains=q).order_by('id')
+    return render(request, 'cart/search.html', {'data': data})
+
+@require_GET
+def search_suggestions(request):
+    query = request.GET.get('q', '')
+    if len(query) < 2:
+        return JsonResponse({'suggestions': []})
+
+    # Perform the search using the query parameter
+    suggestions = Product.objects.filter(name__icontains=query)[:10]
+
+    # Return a JSON response with the search suggestions
+    return JsonResponse({'suggestions': [obj.name for obj in suggestions]})
+
+
 
 # ------------ SHOP SECTION ENDING --------------
 
@@ -284,6 +308,8 @@ def deletewishlist(request):
 
 #-------- WISHLIST ENDING ------------
 
+
+# -----------PAYMENT SECTION ------------
 
 def payment(request):
     body = json.loads(request.body)
@@ -507,6 +533,9 @@ def razorpay(request):
 
     return JsonResponse({'status':"Your Order Has been placed successfully"})
 
+# ------------ PAYMENT SECTION ENDING -------------
+
+
 
 #---------- ORDER SECTION -------------
 
@@ -636,6 +665,40 @@ def cancel_order(request, id):
     order.save()
     return redirect(order_summary)
 
+def initiate_return(request, order_id, product_id):
+    order = Orders.objects.get(id=order_id)
+    if order.customer != request.user:
+        return redirect("home")
+
+    
+    if request.method == "POST":
+        form = ReturnForm(request.POST)
+        if form.is_valid():
+            product_id = product_id
+            product = Product.objects.get(id=product_id)
+            orderItem = OrderedItems.objects.get(order = order, product = product)
+            reason = form.cleaned_data["reason"]
+            new_return = Return(
+                order=order,
+                product=orderItem,
+                reason=reason,
+                status="pending",
+                user=request.user
+            )
+            new_return.save()
+            order.status = "Return Requested"
+            orderItem.status = "Return Requested"
+            orderItem.save()
+            order.save()
+            return redirect(order_details, id=order_id)
+    else:
+        form = ReturnForm()
+        product = Product.objects.get(id=product_id)
+        orderItem = OrderedItems.objects.get(order = order, product = product)
+        form.product = orderItem
+        print(orderItem.product)
+    return render(request, "cart/return_product.html", {"order": order, "form": form, 'order_item':orderItem})
+
 def invoice(request, order_id, product_id):
     order = Orders.objects.get( id = order_id)
     product = Product.objects.get(id = product_id)
@@ -682,8 +745,12 @@ def payment_canceled(request):
     return render(request, 'payment/payment_cancelled.html')
 
 
+
+#------------ ADDRESS SECTION --------------
+
 def add_address(request):
     msg = ""
+    
     if request.method == 'POST':
         form =BillingAddressForm(request.POST)
         if form.is_valid():
@@ -695,7 +762,10 @@ def add_address(request):
                 saveForm.status = True
             saveForm.save()
             msg = "Your address has been saved"
-    form = BillingAddressForm()
+        print(form.errors)
+    else:
+        form = BillingAddressForm()
+    print(form.errors)
     return render(request, 'addressbook/add_address.html', {'form': form, 'msg':msg})
 
 def address(request):
@@ -724,7 +794,9 @@ def address(request):
     context = {'form':billing_form, 'ship_form':shipping_form}
     return render(request, 'cart/address.html', context)
 
+# --------------ADDRESSS SECTION ENDING --------------
 
+# --------------COUPON SECTION ------------------
 def apply_coupon(request):
     order = Order.objects.get(customer = request.user)
     items = order.orderitem_set.filter(product__is_available=True)
@@ -748,59 +820,16 @@ def apply_coupon(request):
         request.session['coupon_id'] = None
         return JsonResponse({'success': False, 'message': 'Invalid coupon code'})
     
+# -----------------COUPON SECTION ENDING-----------------
 
-def search(request):
-    q = request.GET['q']
-    data = Product.objects.filter(name__icontains=q).order_by('id')
-    return render(request, 'cart/search.html', {'data': data})
 
-@require_GET
-def search_suggestions(request):
-    query = request.GET.get('q', '')
-    if len(query) < 2:
-        return JsonResponse({'suggestions': []})
 
-    # Perform the search using the query parameter
-    suggestions = Product.objects.filter(name__icontains=query)[:10]
 
-    # Return a JSON response with the search suggestions
-    return JsonResponse({'suggestions': [obj.name for obj in suggestions]})
-
-def initiate_return(request, order_id, product_id):
-    order = Orders.objects.get(id=order_id)
-    if order.customer != request.user:
-        return redirect("home")
-
-    
-    if request.method == "POST":
-        form = ReturnForm(request.POST)
-        if form.is_valid():
-            product_id = product_id
-            product = Product.objects.get(id=product_id)
-            orderItem = OrderedItems.objects.get(order = order, product = product)
-            reason = form.cleaned_data["reason"]
-            new_return = Return(
-                order=order,
-                product=orderItem,
-                reason=reason,
-                status="pending",
-                user=request.user
-            )
-            new_return.save()
-            order.status = "Return Requested"
-            orderItem.status = "Return Requested"
-            orderItem.save()
-            order.save()
-            return redirect(order_details, id=order_id)
-    else:
-        form = ReturnForm()
-        product = Product.objects.get(id=product_id)
-        orderItem = OrderedItems.objects.get(order = order, product = product)
-        form.product = orderItem
-        print(orderItem.product)
-    return render(request, "cart/return_product.html", {"order": order, "form": form, 'order_item':orderItem})
+# ------------- HELPER METHODS --------------------
 
 def product_quantity(id, quantity):
     product = Product.objects.get(id = id)
     product.quantity -= quantity
     product.save()
+
+# --------------HELPER METHODS ENDING --------------

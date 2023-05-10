@@ -1,6 +1,6 @@
 
 let btns = document.querySelectorAll(".add-cart")
-
+console.log(btns)
 btns.forEach(btn => {
     btn.addEventListener("click", addtoCart)
 });
@@ -38,14 +38,15 @@ function addtoCart(e){
     let product_id = e.target.value
     let data = {id:product_id}
     var token = $('input[name=csrfmiddlewaretoken]').val()
-    var totalQty = $('.shop-page-guest-cart').val()
+    var totalQty = $('#'+product_id).val()
     console.log(totalQty)
 
     if(user == 'AnonymousUser'){
         addCOokieItem(product_id, totalQty)
+        return
     }else{
 
-    let url = "cart/add_to_cart"
+    let url = "/shop/cart/add_to_cart"
     fetch(url, {
         method: "POST",
         headers: {"Content-Type":"application/json","X-CSRFToken":token},
@@ -57,8 +58,11 @@ function addtoCart(e){
             alertify.error(data.status)
         }
         else{
+        document.getElementById('lblCartCounts').innerHTML = data.num_of_items
         document.getElementById('lblCartCount').innerHTML = data.num_of_items
-        console.log(data)
+        
+        alertify.success(data.msg)
+        console.log(data.num_of_items)
         }
     })
     .catch(error =>{
@@ -70,7 +74,10 @@ function addtoCart(e){
 }
 
 function addCOokieItem(productId, totalQty){
-
+    if(totalQty == 0){
+        alertify.error("Out of Stock")
+        return
+    }
     if (cart[productId] == undefined){
         
         cart[productId] = {'quantity': 1}
@@ -114,6 +121,7 @@ function addToCart(proId) {
     }
     
     if (user == 'AnonymousUser'){
+        console.log("In anonymous user")
       var cart = JSON.parse(getCookie('cart'))
       if(cart == undefined){
           cart = {}
@@ -140,6 +148,10 @@ function addToCart(proId) {
             else{
             alertify.success(response.status)
             $('.left_items').load(location.href + " .left_items")
+            if(response.num_of_items){
+                console.log("in num of items")
+            $('#lblCartCount').html(response.num_of_items)
+            }
             }
            console.log(response)
         }
@@ -179,6 +191,94 @@ function getCookie(name) {
 }
 
 $(document).ready(function() {
+    $('.addToWishlist').click(function (e){
+        e.preventDefault();
+
+        var product_id = $(this).closest('.product_data').find('input[name = product_id]').val();
+        var token = $('input[name=csrfmiddlewaretoken]').val()
+        if(product_id == undefined){
+            product_id = $('.home-page-product-id').val()
+        
+        }
+        console.log(product_id)
+        $.ajax({
+            method: "POST",
+            url: "/shop/add-to-wishlist",
+            data: {
+                "product_id": product_id,
+                
+                csrfmiddlewaretoken: token
+            },
+            
+
+            success: function(response){
+                console.log(response)
+                alertify.success(response.status)
+               
+            }
+        })
+    })
+
+    $(document).on('click','.delete-wishlist-item',function(e){
+        e.preventDefault();
+
+        var product_id = $(this).closest('.product_data').find('input[name = product_id]').val();
+        
+        var token = $('input[name=csrfmiddlewaretoken]').val()
+
+        console.log(token)
+        console.log(product_id);
+      
+        $.ajax({
+            method: "POST",
+            url: "/shop/cart/delete_wishlist",
+            data: {
+                "product_id": product_id,
+                
+                csrfmiddlewaretoken: token
+            },
+           
+            success: function(response){
+                console.log(response)
+                $('.wishlist-data').load(location.href + " .wishlist-data" )
+            }
+        })
+
+    })
+    $(document).on('click','.activate-address',function(e){
+        e.preventDefault();
+    
+        var _aid = $(this).attr('data-address')
+        var _vm = $(this);
+        
+     
+      
+        $.ajax({
+        
+            url: "/activate-address",
+            data: {
+                
+                "id": _aid,
+            },
+            dataType : 'json',
+            beforeSend:function(){
+                _vm.attr('disabled', true)
+            },
+           
+            success: function(response){
+                if (response.bool == true){
+                    $('.address-change').load(location.href + " .address-changes" )
+                    
+                    
+                   
+                }
+               
+            }
+        })
+    
+    })
+
+
     $(".increment_btn").click(function(e){
         e.preventDefault();
 
